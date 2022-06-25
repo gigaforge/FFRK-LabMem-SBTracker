@@ -17,22 +17,31 @@ namespace FFRK_LabMem.Services
         private const string CONFIG_PATH = "./Config/schedules.json";
 
         private static Scheduler _instance = null;
-
-        StdSchedulerFactory factory = new StdSchedulerFactory();
+        readonly StdSchedulerFactory factory = new StdSchedulerFactory();
         IScheduler scheduler;
         IJobDetail job;
 
         public List<Schedule> Schedules { get; set; }
+        public int MaintenanceDoneHourUtc { get; set; } = 13;
 
         private Scheduler(LabController controller)
         {
             _ = Initalize(controller);
         }
 
-        public static Scheduler Default(LabController controller)
+        public static async Task Init(LabController controller)
         {
-            if (_instance == null) _instance = new Scheduler(controller);
-            return _instance;
+            _instance = new Scheduler(controller);
+            await _instance.Start();
+        }
+
+        public static Scheduler Default
+        {
+            get
+            {
+                if (_instance == null) throw new InvalidOperationException("Please call Init before using the default instance property");
+                return _instance;
+            }
         }
 
         private async Task Initalize(LabController controller)
@@ -47,7 +56,6 @@ namespace FFRK_LabMem.Services
                 .StoreDurably(true)
                 .Build();
             job.JobDataMap.Put("controller", controller);
-
             // Load from disk
             await Load();
 
@@ -61,6 +69,10 @@ namespace FFRK_LabMem.Services
             foreach(var schedule in Schedules)
             {
 
+                // Data Map
+                JobDataMap jobDataMap = new JobDataMap();
+                jobDataMap.Add("schedule", schedule);
+
                 // Only if in the future or schedule present
                 if (schedule.EnableEnabled && (schedule.EnableDate > DateTime.Now || !String.IsNullOrEmpty(schedule.EnableCronTab)))
                 {
@@ -70,8 +82,8 @@ namespace FFRK_LabMem.Services
                         .WithIdentity(schedule.Name + "_enable")
                         .ForJob(job)
                         .StartAt(schedule.EnableDate)
+                        .UsingJobData(jobDataMap)
                         .UsingJobData("enabled", true)
-                        .UsingJobData("hardstart", schedule.EnableHardStart)
                         .WithDescription(schedule.Name);
 
                     // Repeat
@@ -91,8 +103,8 @@ namespace FFRK_LabMem.Services
                         .WithIdentity(schedule.Name + "_disable")
                         .ForJob(job)
                         .StartAt(schedule.DisableDate)
+                        .UsingJobData(jobDataMap)
                         .UsingJobData("enabled", false)
-                        .UsingJobData("closeapp", schedule.DisableCloseApp)
                         .WithDescription(schedule.Name);
 
                     // Repeat
@@ -114,7 +126,7 @@ namespace FFRK_LabMem.Services
             if (Schedules.Count > 0)
             {
                 // Need a delay before getting the next trigger time so any misfires can be handled and triggers get updated accordingly
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
 
                 // Get all triggers for our job and filter out the next one
                 var triggs = await scheduler.GetTriggersOfJob(job.Key);
@@ -147,8 +159,40 @@ namespace FFRK_LabMem.Services
 
         public async Task Save()
         {
+            // Stop temporarily while we save
+            await Stop();
+
+            // Persist to disk
             File.WriteAllText(CONFIG_PATH, JsonConvert.SerializeObject(this.Schedules, Formatting.Indented));
-            await Task.CompletedTask;
+
+            // Re-start
+            await Start();
+        }
+
+        public async Task AddPostMaintenanceSchedule()
+        {
+
+            // Return if option invalid or disabled
+            if (this.MaintenanceDoneHourUtc < 0 || this.MaintenanceDoneHourUtc > 23) return;
+
+            var nowUtc = DateTime.UtcNow;
+            var maintenanceDoneUtc = new DateTime(nowUtc.Year, nowUtc.Month, nowUtc.Day, this.MaintenanceDoneHourUtc, 0, 0, 0, DateTimeKind.Utc);
+            var name = $"Post-Maintenance ({nowUtc.ToShortDateString()})";
+
+            // Return if in the past or already added
+            if (maintenanceDoneUtc < nowUtc || this.Schedules.Any(s => s.Name.Equals(name))) return;
+
+            this.Schedules.Add(new Schedule()
+            {
+                Name = name,
+                EnableDate = maintenanceDoneUtc.ToLocalTime(),
+                EnableHardStart = true,
+                EnableEnabled = true,
+                DisableDate = DateTime.Now
+            });
+
+            await Save();
+
         }
 
         public class Schedule
@@ -158,6 +202,7 @@ namespace FFRK_LabMem.Services
             public DateTime EnableDate { get; set; }
             public String EnableCronTab { get; set; }
             public Boolean EnableHardStart { get; set; }
+            public Boolean EnableForceStart { get; set; }
             public bool DisableEnabled { get; set; }
             public DateTime DisableDate { get; set; }
             public String DisableCronTab { get; set; }

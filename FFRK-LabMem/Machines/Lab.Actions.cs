@@ -81,6 +81,7 @@ namespace FFRK_LabMem.Machines
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_inventory, Simalarity = 0.90f });
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_skip, Simalarity = 0.90f });
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.lab_segment, Simalarity = 0.85f });
+                if (Data == null) items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_blue_enter, Simalarity = 0.95f });
 
                 // Find
                 var ret = await Adb.FindImages(items, 3, this.CancellationToken);
@@ -107,6 +108,12 @@ namespace FFRK_LabMem.Machines
                     if (ret.Equals(items[2]))
                     {
                         await Adb.TapPct(ret.Location.Item1, ret.Location.Item2, this.CancellationToken);
+                    }
+
+                    // Lab enter
+                    if (ret.Equals(items[3]))
+                    {
+                        await RestartLab(DateTime.Now.AddSeconds(-1));
                     }
 
                     ColorConsole.WriteLine(ConsoleColor.DarkGray, "Auto-start complete, Have fun!");
@@ -428,7 +435,7 @@ namespace FFRK_LabMem.Machines
                 var partyResult = await CheckParty(dungeon, true);
                 if (partyResult.NeedsTears)
                 {
-                    if (!await UseLetheTears(partyResult.PartyIndex)) return;
+                    if (!await UseLetheTears(partyResult)) return;
                     await LabTimings.Delay("Inter-StartBattle", this.CancellationToken);
                 }
                 if (await SelectParty(partyResult.PartyIndex)) 
@@ -459,6 +466,7 @@ namespace FFRK_LabMem.Machines
         {
             private readonly Lab lab;
             public bool NeedsTears { get; set; } = false;
+            public List<int> NeedsTearsUnits { get; set; } = new List<int>();
             public int PartyIndex { get; set; } = 0;
             public bool CheckedFatigue { get; set; } = false;
             public bool CanInstaBattle
@@ -502,7 +510,8 @@ namespace FFRK_LabMem.Machines
                     ret.PartyIndex = selector.GetPartyIndex(dungeon);
 
                     // Fatigue level check for tears
-                    ret.NeedsTears = letheTearsEnabled && FatigueInfo.IsOverThreshold(ret.PartyIndex, Config.LetheTearsSlots, Config.LetheTearsFatigue);
+                    ret.NeedsTearsUnits = FatigueInfo.UnitsOverThreshold(ret.PartyIndex, Config.LetheTearsSlots[ret.PartyIndex], Config.LetheTearsFatigue);
+                    ret.NeedsTears = letheTearsEnabled && ret.NeedsTearsUnits.Count > 0;
                     ret.CheckedFatigue = true;
 
                 }
@@ -596,10 +605,10 @@ namespace FFRK_LabMem.Machines
             await LabTimings.Delay("Post-ConfirmPortal", this.CancellationToken);
         }
 
-        private async Task<bool> UseLetheTears(int party)
+        private async Task<bool> UseLetheTears(CheckPartyResult party)
         {
 
-            int numberUsed = Convert.ToString(Config.LetheTearsSlots[party], 2).ToCharArray().Count(c => c == '1');
+            int numberUsed = party.NeedsTearsUnits.Count();
 
             // Check remaining qty
             if (numberUsed > CurrentTears){
@@ -613,13 +622,11 @@ namespace FFRK_LabMem.Machines
             await DelayedTapPct("Pre-LetheTears", 88.88, 17.18);
 
             // Each unit if selected
-            var partyY = 32.33333 + (16.66666 * party);
-            var selectedUnits = new List<int>();
+            var partyY = 32.33333 + (16.66666 * party.PartyIndex);
             for (int i = 0; i < 5; i++)
             {
-                if ((Config.LetheTearsSlots[party] & (1 << 4-i)) != 0)
+                if (party.NeedsTearsUnits.Contains(i))
                 {
-                    selectedUnits.Add(i);
                     await DelayedTapPct("Inter-LetheTears-Unit", 11.11 + (i * 15.55), partyY);
                 }
             }
@@ -637,7 +644,7 @@ namespace FFRK_LabMem.Machines
                         if (await DelayedTapButton("Inter-LetheTears", BUTTON_BLUE, 3000, 38.8, 55, 70, 5, -1, 1))
                         {
                             // Update fatigue (set to 0)
-                            FatigueInfo.UpdateTears(party, selectedUnits);
+                            FatigueInfo.UpdateTears(party.PartyIndex, party.NeedsTearsUnits);
 
                             // Update counters
                             this.CurrentTears -= numberUsed;
@@ -840,7 +847,13 @@ namespace FFRK_LabMem.Machines
                 var duration = atTime.Value - DateTime.Now;
                 await RestartLabCountdown(duration);
 
-            } else
+            } 
+            else if (this.Data == null)
+            {
+                // Small countdown if just starting
+                await RestartLabCountdown(TimeSpan.FromSeconds(5));
+            }
+            else
             {
                 // Timing-based countdown
                 await RestartLabCountdown(await LabTimings.GetTimeSpan("Pre-RestartLab"));
@@ -852,16 +865,20 @@ namespace FFRK_LabMem.Machines
             ColorConsole.WriteLine("Restarting Lab");
 
             // Dungeon Complete
-            ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Dismissing dungeon complete dialog");
-            var closeButton = await DelayedFindButton("Inter-RestartLab", BUTTON_BROWN, 2000, 39, 81, 91, 5);
-            if (closeButton != null)
+            if (this.Data != null)
             {
-                await Adb.TapPct(closeButton.Item1, closeButton.Item2, this.CancellationToken);
-            } else
-            {
-                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Dungeon complete dialog not present");
+                ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Dismissing dungeon complete dialog");
+                var closeButton = await DelayedFindButton("Inter-RestartLab", BUTTON_BROWN, 2000, 39, 81, 91, 5);
+                if (closeButton != null)
+                {
+                    await Adb.TapPct(closeButton.Item1, closeButton.Item2, this.CancellationToken);
+                }
+                else
+                {
+                    ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Dungeon complete dialog not present");
+                }
             }
-
+            
             // Mission Complete
             Watchdog.Kick(true);
             ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for mission complete dialog");
@@ -956,7 +973,7 @@ namespace FFRK_LabMem.Machines
 
                 // Brown use potion button
                 Adb.FindButtonResult staminaButton = null;
-                if (Config.UsePotions && (staminaButton = await Adb.FindButton(BUTTON_BROWN, 2000, 50, 36, 50, 0, this.CancellationToken)) != null)
+                if (Config.UsePotions && (staminaButton = await Adb.FindButton(BUTTON_BROWN, 2000, 50, 36, 50, 0, this.CancellationToken, -1, 0)) != null)
                 {
                     // Select potions
                     await Adb.TapPct(staminaButton.button.Item1, staminaButton.button.Item2, this.CancellationToken);
@@ -975,6 +992,12 @@ namespace FFRK_LabMem.Machines
                 {
                     ColorConsole.WriteLine(ConsoleColor.Yellow, "Not enough stamina!");
                     await Notify(Notifications.EventType.LAB_FAULT, "Out of stamina");
+
+                    // Back out to main screen
+                    await Adb.NavigateBack(this.CancellationToken);
+                    await Task.Delay(500, this.CancellationToken);
+                    await Adb.NavigateBack(this.CancellationToken);
+
                     OnMachineFinished();
                 }
 
@@ -1128,7 +1151,7 @@ namespace FFRK_LabMem.Machines
                     ColorConsole.WriteLine(ConsoleColor.DarkRed, "Restarting...");
                     await DelayedTapPct("Pre-RestartBattle", 50, 72);
                     await DelayedTapPct("Inter-RestartBattle", 25, 55);
-                    await CheckAutoBattle();
+                    _ = Task.Run(() => CheckAutoBattle());
                 }
             }
             else
@@ -1250,6 +1273,7 @@ namespace FFRK_LabMem.Machines
         {
 
             await LabTimings.Delay("Pre-CheckAutoBattle", this.CancellationToken);
+
             ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for auto-battle");
             List<Adb.ImageDef> items = new List<Adb.ImageDef>
             {
@@ -1264,13 +1288,31 @@ namespace FFRK_LabMem.Machines
                     // Tap it
                     ColorConsole.WriteLine(ConsoleColor.Yellow, "Auto-battle disabled, attempting to enable it now!");
                     await Adb.TapPct(9.1, 77.2, CancellationToken);
-                    return;
+                    break;
                 } else
                 {
                     ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Did not find disabled auto-battle state");
                 }
                 await Task.Delay(Adb.CaptureRate, this.CancellationToken);
             }
+
+            ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for abilities and soul breaks enabled");
+            items = new List<Adb.ImageDef>
+            {
+                new Adb.ImageDef() { Image = Properties.Resources.button_a_off, Simalarity = 0.90f },
+                new Adb.ImageDef() { Image = Properties.Resources.button_s_off, Simalarity = 0.90f }
+            };
+
+            for (int i = 0; i < 8; i++)
+            {
+                var ret = await Adb.FindImages(items, 2, this.CancellationToken);
+                if (ret != null)
+                {
+                    await Adb.TapPct(ret.Location.Item1, ret.Location.Item2, CancellationToken);
+                }
+                await Task.Delay(Adb.CaptureRate, this.CancellationToken);
+            }
+
             await LabTimings.Delay("Post-CheckAutoBattle", this.CancellationToken);
 
         }

@@ -5,7 +5,6 @@ using System.IO;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using FFRK_Machines;
-using Microsoft.VisualBasic;
 using FFRK_LabMem.Services;
 using System.Threading;
 using System.Linq;
@@ -46,21 +45,15 @@ namespace FFRK_LabMem.Config.UI
                 
                 Task mytask = Utility.StartSTATask(async () =>
                 {
-                    // Disable Lab
-                    //if (controller.Enabled) controller.Disable();
-                    var defaultScheduler = Scheduler.Default(controller);
-                    await defaultScheduler.Stop();
-
                     var form = new ConfigForm
                     {
                         configHelper = configHelper,
                         controller = controller,
-                        scheduler = defaultScheduler,
+                        scheduler = Scheduler.Default,
                         initalTabIndex = initalTabIndex
                     };
                     form.ShowDialog();
-
-                    await defaultScheduler.Start();
+                    await Task.CompletedTask;
 
                 });
             }
@@ -149,6 +142,8 @@ namespace FFRK_LabMem.Config.UI
             numericUpDownTapPressure.Value = configHelper.GetInt("adb.tapPressure", 50);
             checkBoxCountersLogDropsTotal.Checked = configHelper.GetBool("counters.logDropsToTotal", false);
             numericUpDownCountersRarity.Value = configHelper.GetInt("counters.materialsRarityFilter", 6);
+            textBoxLogFolder.Text = configHelper.GetString("console.logFolder", "");
+            textBoxScreenshotFolder.Text = configHelper.GetString("adb.screenshotFolder", "");
 
             // Load lab .json
             LoadConfigs();
@@ -240,8 +235,10 @@ namespace FFRK_LabMem.Config.UI
             configHelper.SetValue("console.timestamps", checkBoxTimestamps.Checked);
             configHelper.SetValue("console.logging", checkBoxLogging.Checked);
             configHelper.SetValue("console.debugCategories", (short)buttonDebug.Tag);
+            configHelper.SetValue("console.logFolder", textBoxLogFolder.Text);
             ColorConsole.Timestamps = checkBoxTimestamps.Checked;
             ColorConsole.LogBuffer.Enabled = checkBoxLogging.Checked;
+            ColorConsole.LogBuffer.UpdateFolderOrDefault(textBoxLogFolder.Text);
             ColorConsole.DebugCategories = (ColorConsole.DebugCategory)buttonDebug.Tag;
 
             // Other setting
@@ -279,6 +276,7 @@ namespace FFRK_LabMem.Config.UI
             configHelper.SetValue("lab.watchdogHangScreenshot", checkBoxWatchdogScreenshot.Checked);
             configHelper.SetValue("counters.logDropsToTotal", checkBoxCountersLogDropsTotal.Checked);
             configHelper.SetValue("counters.materialsRarityFilter", numericUpDownCountersRarity.Value);
+            configHelper.SetValue("adb.screenshotFolder", textBoxScreenshotFolder.Text);
 
             // Drop categories
             Counters.DropCategory cats = 0;
@@ -386,7 +384,7 @@ namespace FFRK_LabMem.Config.UI
                 var schedule = (Scheduler.Schedule)item.Tag;
                 scheduler.Schedules.Add(schedule);
             }
-            await scheduler.Save();
+            _ = scheduler.Save(); // No await here or it causes a deadlock on the UI thread
 
             // Save Notifications
             ComboBoxNotificationEvents_SelectedIndexChanged(sender, e);
@@ -408,6 +406,7 @@ namespace FFRK_LabMem.Config.UI
                 controller.Adb.TapPressure = (int)numericUpDownTapPressure.Value;
                 controller.Adb.Capture = (Adb.CaptureType)comboBoxCapture.SelectedIndex;
                 controller.Adb.Input = (Adb.InputType)comboBoxInput.SelectedIndex;
+                controller.Adb.ScreenshotFolder = textBoxScreenshotFolder.Text;
             }
 
             // Watchdog
@@ -1128,5 +1127,115 @@ namespace FFRK_LabMem.Config.UI
         {
             numericUpDownRestoreFatigue.Enabled = checkBoxBoostRestore.Checked;
         }
+
+        private async void ComboBoxAdbHost_DropDown(object sender, EventArgs e)
+        {
+            // Get all non-tcp (usb) devices
+            var devices = (await controller.Adb.GetDevices()).Where(d => !d.Contains("."));
+
+            foreach (var item in devices)
+            {
+                if (!Lookups.AdbHosts.Any(h => h.Value.Equals(item)))
+                {
+                    Lookups.AdbHosts.Add(new AdbHostItem() { Name = $"USB", Value = item });
+                }
+            }
+
+        }
+
+        private void ButtonLogFolder_Click(object sender, EventArgs e)
+        {
+            var folder = new DirectoryInfo(Path.GetFullPath(ColorConsole.LogBuffer.LogDirectory));
+            folderBrowserDialog1.SelectedPath = folder.FullName;
+            var result = folderBrowserDialog1.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                textBoxLogFolder.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        private void ButtonScreenshotFolder_Click(object sender, EventArgs e)
+        {
+            var folder = new DirectoryInfo(Path.GetFullPath(String.IsNullOrEmpty(textBoxScreenshotFolder.Text)? Application.StartupPath : textBoxScreenshotFolder.Text));
+            folderBrowserDialog1.SelectedPath = folder.FullName;
+            var result = folderBrowserDialog1.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                textBoxScreenshotFolder.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        #region DragDropRegion
+        // https://stackoverflow.com/a/1623968/383761
+        private Rectangle dragBoxFromMouseDown;
+        private int rowIndexFromMouseDown;
+        private int rowIndexOfItemUnderMouseToDrop;
+        private void DataGridViewEnemies_MouseMove(object sender, MouseEventArgs e)
+        {
+            if ((e.Button & MouseButtons.Left) == MouseButtons.Left)
+            {
+                // If the mouse moves outside the rectangle, start the drag.
+                if (dragBoxFromMouseDown != Rectangle.Empty &&
+                    !dragBoxFromMouseDown.Contains(e.X, e.Y))
+                {
+
+                    // Proceed with the drag and drop, passing in the list item.                    
+                    DragDropEffects dropEffect = dataGridViewEnemies.DoDragDrop(
+                    dataGridViewEnemies.Rows[rowIndexFromMouseDown],
+                    DragDropEffects.Move);
+                }
+            }
+        }
+
+        private void DataGridViewEnemies_MouseDown(object sender, MouseEventArgs e)
+        {
+            // Get the index of the item the mouse is below.
+            rowIndexFromMouseDown = dataGridViewEnemies.HitTest(e.X, e.Y).RowIndex;
+            if (rowIndexFromMouseDown != -1 && rowIndexFromMouseDown < dataGridViewEnemies.Rows.Count - 1)
+            {
+                // Remember the point where the mouse down occurred. 
+                // The DragSize indicates the size that the mouse can move 
+                // before a drag event should be started.                
+                Size dragSize = SystemInformation.DragSize;
+
+                // Create a rectangle using the DragSize, with the mouse position being
+                // at the center of the rectangle.
+                dragBoxFromMouseDown = new Rectangle(new Point(e.X - (dragSize.Width / 2),
+                                                               e.Y - (dragSize.Height / 2)),
+                                    dragSize);
+            }
+            else
+                // Reset the rectangle if the mouse is not over an item in the ListBox.
+                dragBoxFromMouseDown = Rectangle.Empty;
+        }
+
+        private void DataGridViewEnemies_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Move;
+        }
+
+        private void DataGridViewEnemies_DragDrop(object sender, DragEventArgs e)
+        {
+            // The mouse locations are relative to the screen, so they must be 
+            // converted to client coordinates.
+            Point clientPoint = dataGridViewEnemies.PointToClient(new Point(e.X, e.Y));
+
+            // Get the row index of the item the mouse is below. 
+            rowIndexOfItemUnderMouseToDrop = dataGridViewEnemies.HitTest(clientPoint.X, clientPoint.Y).RowIndex;
+
+            // If the drag operation was a move then remove and insert the row.
+            if (e.Effect == DragDropEffects.Move)
+            {
+                DataGridViewRow rowToMove = e.Data.GetData(typeof(DataGridViewRow)) as DataGridViewRow;
+
+                dataGridViewEnemies.Rows.RemoveAt(rowIndexFromMouseDown);
+                if (rowIndexOfItemUnderMouseToDrop >= dataGridViewEnemies.Rows.Count) { rowIndexOfItemUnderMouseToDrop--; }
+                dataGridViewEnemies.Rows.Insert(rowIndexOfItemUnderMouseToDrop, rowToMove);
+            }
+        }
+
+        #endregion
+
     }
+
 }

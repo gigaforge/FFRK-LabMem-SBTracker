@@ -73,6 +73,7 @@ namespace FFRK_Machines.Services.Adb
                     await client.ExecuteRemoteCommandAsync(cmd, device, null, minicapTaskToken, 0);
                 }
                 catch (OperationCanceledException) { }
+                catch (SharpAdbClient.Exceptions.ShellCommandUnresponsiveException) { }
                 catch (Exception ex)
                 {
                     ColorConsole.WriteLine(ConsoleColor.Red, ex.ToString());
@@ -234,7 +235,7 @@ namespace FFRK_Machines.Services.Adb
                 if (ret == null)
                 {
                     minicapTimeouts += 1;
-                    if (minicapTimeouts >= 10)
+                    if (minicapTimeouts >= 20)
                     {
                         ColorConsole.WriteLine(ConsoleColor.Yellow, "Minicap timed out reverting to ADB screencap");
                         adb.Capture = CaptureType.ADB;

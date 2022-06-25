@@ -73,9 +73,29 @@ namespace FFRK_LabMem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap button_a_off {
+            get {
+                object obj = ResourceManager.GetObject("button_a_off", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap button_android_ok {
             get {
                 object obj = ResourceManager.GetObject("button_android_ok", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap button_blue_enter {
+            get {
+                object obj = ResourceManager.GetObject("button_blue_enter", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -113,10 +133,36 @@ namespace FFRK_LabMem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap button_s_off {
+            get {
+                object obj = ResourceManager.GetObject("button_s_off", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap button_skip {
             get {
                 object obj = ResourceManager.GetObject("button_skip", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to @@
+        ///                                    @@@@@@@/                               @@% @
+        ///                           @@@@@@/           @@@@@/                      @@    @
+        ///                      @@@                            @@@              @@       @
+        ///                  @@                                     @@@       @@         @@
+        ///               @@            (@@@@@@@@@@@@@@@@@             @@@ (@(           @ 
+        ///            @@          @@@.   @@@@@         @@  .@@&amp;          @@            @@ 
+        ///          @@     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string EPK {
+            get {
+                return ResourceManager.GetString("EPK", resourceCulture);
             }
         }
         
@@ -161,20 +207,25 @@ namespace FFRK_LabMem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap lab_outpost {
+        internal static System.Drawing.Bitmap lab_segment {
             get {
-                object obj = ResourceManager.GetObject("lab_outpost", resourceCulture);
+                object obj = ResourceManager.GetObject("lab_segment", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to                                      ...                                      
+        ///                                 (/**(((#//*(                                   
+        ///                              //****(*  .*///*#                                 
+        ///                            ,#******(.(*% ////*(                                
+        ///                           //*******/&amp;***,.(////#                               
+        ///                          */*********%***/%,,,////                              
+        ///                          (* [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static System.Drawing.Bitmap lab_segment {
+        internal static string Tyro7 {
             get {
-                object obj = ResourceManager.GetObject("lab_segment", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("Tyro7", resourceCulture);
             }
         }
     }

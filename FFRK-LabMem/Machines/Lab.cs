@@ -92,7 +92,6 @@ namespace FFRK_LabMem.Machines
             this.Watchdog.BattleLoop += Watchdog_BattleLoop;
             this.parser = new LabParser(this);
             this.selector = new LabSelector(this);
-
         }
 
         public override void ConfigureStateMachine()
@@ -117,8 +116,8 @@ namespace FFRK_LabMem.Machines
                 .Permit(Trigger.BattleFailed, State.Failed)
                 .Permit(Trigger.FoundBoss, State.WaitForBoss)
                 .Permit(Trigger.FinishedLab, State.Completed)
-                .IgnoreIf(Trigger.EnteredOutpost, () => this.Data == null)
-                .PermitIf(Trigger.EnteredOutpost, State.Outpost, () => this.Data != null);
+                .IgnoreIf(Trigger.EnteredOutpost, () => !recoverStopwatch.IsRunning)
+                .PermitIf(Trigger.EnteredOutpost, State.Outpost, () => recoverStopwatch.IsRunning);
 
             this.StateMachine.Configure(State.Ready)
                 .OnEntryAsync(async (t) => await SelectPainting())
@@ -191,7 +190,8 @@ namespace FFRK_LabMem.Machines
             this.StateMachine.Configure(State.Restarting)
                 .OnEntryAsync(async (t) => await RestartLab())
                 .Permit(Trigger.ResetState, State.Unknown)
-                .Ignore(Trigger.EnteredOutpost);
+                .Ignore(Trigger.EnteredOutpost)
+                .Ignore(Trigger.PickedCombatant);
 
             this.StateMachine.Configure(State.WaitForBoss)
                 .OnEntryAsync(async (t) => await FinishLab(t))
@@ -229,6 +229,9 @@ namespace FFRK_LabMem.Machines
             // Message only if not from self
             if (sender != this) ColorConsole.WriteLine(ConsoleColor.DarkRed, "{0} detected!", e.Type);
 
+            // Auto-battle check for wait mode
+            if (e.Type == LabWatchdog.WatchdogEventArgs.TYPE.LongBattle) await CheckAutoBattle();
+            
             // Counters
             if (e.Type == LabWatchdog.WatchdogEventArgs.TYPE.Crash) await Counters.FFRKCrashed();
             if (e.Type == LabWatchdog.WatchdogEventArgs.TYPE.Hang) await Counters.FFRKHang(Watchdog.Config.HangWarningSeconds > 0);
@@ -344,43 +347,57 @@ namespace FFRK_LabMem.Machines
         public override void RegisterWithProxy(Proxy Proxy)
         {
             Proxy.AddRegistration("get_display_paintings", parser.ParseDisplayPaintings);
-            Proxy.AddRegistration("select_painting", async (data, url) =>
+            Proxy.AddRegistration("select_painting", async (args) =>
             {
                 await Adb.StopTaps();
-                await parser.ParsePainting(data, url);
+                await parser.ParsePainting(args);
             });
             Proxy.AddRegistration("choose_explore_painting", parser.ParsePainting);
-            Proxy.AddRegistration("open_treasure_chest", async (data, url) =>
+            Proxy.AddRegistration("open_treasure_chest", async (args) =>
             {
-                this.Data = data;
+                this.Data = args.Data;
                 await this.StateMachine.FireAsync(Trigger.FoundTreasure);
             });
-            Proxy.AddRegistration("dungeon_recommend_info", async(data, url) => 
+            Proxy.AddRegistration("dungeon_recommend_info", async(args) => 
             {
                 await Adb.StopTaps();
                 if (this.Data != null) await this.StateMachine.FireAsync(Trigger.PickedCombatant); 
             });
-            Proxy.AddRegistration("labyrinth/[0-9]+/win_battle", async(data, url) => 
+            Proxy.AddRegistration("labyrinth/[0-9]+/win_battle", async(args) => 
             {
-                this.Data = data;
+                this.Data = args.Data;
                 // Prevent unexpected state change if error present
-                if (data["error"] == null) await this.StateMachine.FireAsync(Trigger.BattleSuccess);
+                if (args.Data["error"] == null) await this.StateMachine.FireAsync(Trigger.BattleSuccess);
             });
-            Proxy.AddRegistration("continue/get_info", async(data, url) =>
+            Proxy.AddRegistration("continue/get_info", async(args) =>
             {
                 await this.StateMachine.FireAsync(Trigger.BattleFailed);
             });
-            Proxy.AddRegistration("labyrinth/[0-9]+/get_battle_init_data", async(data, url) => {
+            Proxy.AddRegistration("labyrinth/[0-9]+/get_battle_init_data", async(args) => {
                 recoverStopwatch.Stop();
                 Watchdog.HangReset(); // Started battle indicates we not in hang state
                 await this.StateMachine.FireAsync(Trigger.StartBattle);
-            }) ;
+            });
             Proxy.AddRegistration("labyrinth/party/list", parser.ParsePartyList);
             Proxy.AddRegistration("labyrinth/buddy/info", parser.ParseFatigueInfo);
-            Proxy.AddRegistration(@"/dff/\?timestamp=[0-9]+", parser.ParseAllData);
+            Proxy.AddRegistration(@"/dff/\?timestamp=[0-9]+", async(args) => {
+                if (!await parser.ParseAllData(args))
+                {
+                    if (args.Body.IndexOf("maintenance", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        // Data is null during maintenance
+                        ColorConsole.WriteLine(ConsoleColor.Red, "Maintenance ongoing, disabling...");
+                        await Services.Scheduler.Default.AddPostMaintenanceSchedule();
+                        OnMachineFinished();
+                    } else
+                    {
+                        ColorConsole.WriteLine(ConsoleColor.Red, "System error...");
+                    }
+                }
+            });
             Proxy.AddRegistration("labyrinth/[0-9]+/do_simple_explore", parser.ParseQEData);
             Proxy.AddRegistration("labyrinth/[0-9]+/enter_labyrinth_dungeon", parser.ParseEnterLab);
-            Proxy.AddRegistration("labyrinth/[0-9]+/get_data", async (data, url) =>
+            Proxy.AddRegistration("labyrinth/[0-9]+/get_data", async (args) =>
             {
                 await this.StateMachine.FireAsync(Trigger.EnteredOutpost);
             });
@@ -426,6 +443,25 @@ namespace FFRK_LabMem.Machines
 
             await parser.ParseDataChanged(data);
 
+        }
+
+        protected async override void OnMachineError(Exception e)
+        {
+            if (e is InvalidStateException<Trigger,State>)
+            {
+                // Notification
+                ColorConsole.WriteLine(ConsoleColor.Red, e.Message);
+                await Notify(Notifications.EventType.LAB_FAULT, "Unexpected state");
+                
+                // Handle invalid states by brute-force reset of FFRK
+                await ManualFFRKRestart(false);
+
+            }
+            else
+            {
+                base.OnMachineError(e);
+            }
+            
         }
 
         private Task<bool> CheckDisableSafeRequested()

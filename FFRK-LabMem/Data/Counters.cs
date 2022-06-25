@@ -44,7 +44,8 @@ namespace FFRK_LabMem.Data
             EQUIPMENT_SP_MATERIAL = 1 << 5,
             HISTORIA_CRYSTAL_ENHANCEMENT_MATERIAL = 1 << 6,
             GROW_EGG = 1 << 7,
-            BEAST_FOOD = 1 << 8
+            BEAST_FOOD = 1 << 8,
+            RECORD_MATERIA = 1 << 9
         }
 
         // Public properties
@@ -57,11 +58,13 @@ namespace FFRK_LabMem.Data
         public bool LogDropsToTotalCounters { get; set; } = false;
         public int MaterialsRarityFilter { get; set; } = 6;
         public string CurrentLabId = null;
+        public int BufferSize { get; set; } = 10;
 
         // Private fields
         private CounterSet currentLabBufferSet { get; set; } = new CounterSet();
         private readonly LabController controller;
         private readonly Stopwatch runtimeStopwatch = new Stopwatch();
+        private int bufferWrites = 0;
 
         private Counters(LabController controller)
         {
@@ -98,7 +101,7 @@ namespace FFRK_LabMem.Data
         }
         private async void Controller_OnDisabled(object sender, EventArgs e)
         {
-            await Save();
+            await Save(CONFIG_PATH, true);
             runtimeStopwatch.Stop();
             ClearCurrentLab();
         }
@@ -226,7 +229,7 @@ namespace FFRK_LabMem.Data
                 {
                     // Filter materials drops
                     if (rarity == 0) rarity = CounterInference.InferRarity(category, name);
-                    if (!(DropCategory.LABYRINTH_ITEM | DropCategory.COMMON).HasFlag(category) && rarity > 0 && rarity < _instance.MaterialsRarityFilter) return;
+                    if (!(DropCategory.LABYRINTH_ITEM | DropCategory.COMMON | DropCategory.RECORD_MATERIA).HasFlag(category) && rarity > 0 && rarity < _instance.MaterialsRarityFilter) return;
                     
                     _instance.IncrementDrop(name, qty, isQE);
                     await _instance.Save();
@@ -376,7 +379,7 @@ namespace FFRK_LabMem.Data
             }
             await Task.CompletedTask;
         }
-        public async Task Save(string path = CONFIG_PATH)
+        public async Task Save(string path = CONFIG_PATH, bool noBuffer = false)
         {
             if (runtimeStopwatch.IsRunning)
             {
@@ -384,13 +387,29 @@ namespace FFRK_LabMem.Data
                 runtimeStopwatch.Restart();
             }
             OnUpdated?.Invoke();
+
+            // Buffer Check
+            if (!noBuffer)
+            {
+                bufferWrites++;
+                if (bufferWrites < BufferSize) return;
+            }
+
             try
             {
+                // Ensure directory created
                 new FileInfo(path).Directory.Create();
-                File.WriteAllText(path, 
+                
+                // Write to temp file
+                File.WriteAllText(path + ".tmp", 
                     JsonConvert.SerializeObject(this.CounterSets, 
                     Formatting.Indented, 
                     new ExcludeSessionDictionaryItemConverter<IDictionary<string, CounterSet>, CounterSet>()));
+
+                // Swap temp to live file
+                File.Replace(path + ".tmp", path, null);
+                bufferWrites = 0;
+                Debug.WriteLine($"{path} wrote to disk");
             }
             catch (Exception)
             {
@@ -430,6 +449,11 @@ namespace FFRK_LabMem.Data
                 if (item.Value.DropsQE.ContainsKey(key)) item.Value.DropsQE.Remove(key);
             }
             await _instance.Save();
+        }
+
+        public static async Task Flush()
+        {
+            await _instance.Save(CONFIG_PATH, true);
         }
         
     }
