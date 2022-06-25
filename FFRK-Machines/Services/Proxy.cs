@@ -149,7 +149,7 @@ namespace FFRK_Machines.Services
             //var responseHeaders = e.HttpClient.Response.Headers;
             System.Diagnostics.Debug.Print(e.HttpClient.Request.Url);
             ColorConsole.Debug(ColorConsole.DebugCategory.Proxy, e.HttpClient.Request.Url);
-            if (!e.HttpClient.Request.Host.Equals("ffrk.denagames.com")) return;
+            if (!e.HttpClient.Request.Host.Equals("dff.sp.mbga.jp")) return;
             if (e.HttpClient.Request.Method == "GET" || e.HttpClient.Request.Method == "POST")
             {
                 if (e.HttpClient.Response.StatusCode == 200)
@@ -205,7 +205,7 @@ namespace FFRK_Machines.Services
                 return Task.FromResult(false);
             }
 
-            if (!hostname.Contains("ffrk.denagames.com"))
+            if (!hostname.Contains("dff.sp.mbga.jp"))
             {
                 e.DecryptSsl = false;
                 System.Diagnostics.Debug.Print("Tunnel to: " + hostname);

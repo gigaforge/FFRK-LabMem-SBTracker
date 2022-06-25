@@ -16,7 +16,7 @@ namespace FFRK_Machines.Services.Adb
     public class Adb
     {
 
-        public const String FFRK_PACKAGE_NAME = "com.dena.west.FFRK";
+        public const String FFRK_PACKAGE_NAME = "jp.mbga.a12019103.lite";
         public const String FFRK_ACTIVITY_NAME = "jp.dena.dot.Dot";
         private int cachedApiLevel = 0;
         private string cachedAbi = string.Empty;

@@ -34,7 +34,7 @@ namespace FFRK_LabMem.Machines
             await LabTimings.Delay(key, this.CancellationToken);
             await this.Adb.TapPct(X, Y, this.CancellationToken);
         }
-
+        
         private async Task<bool> DelayedTapButton(string key, string color, int threshold, double X, double Y1, double Y2, int retries, double precision = -1, int accuracy = -1)
         {
 
