@@ -43,7 +43,7 @@ namespace FFRK_LabMem
             }
 
             // Version check
-            var versionCode = Updates.GetVersionCode("beta");
+            var versionCode = Updates.GetVersionCode("jp");
             var versionTitle = String.Format("{0} {1}", Updates.GetName(), versionCode);
             ColorConsole.WriteLine(versionTitle);
             Console.Title = versionTitle;
