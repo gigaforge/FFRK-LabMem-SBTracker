@@ -1,4 +1,6 @@
 # FFRK-LabMem
+This is a slightly modifed version of HughJeffner's original LabMem bot for FFRK. It is built to run with FFRK JP, with various changes made by mendicant and further modified by bover87. **This version may contain bugs. I will try my best to fix any issues, but my knowledge of coding is extremely limited. If you find bugs and know how to fix them, please feel free to create a fork.**
+
 Full automation for labyrinth dungeons on Android FFRK and Windows using a proxy server and [adb](https://developer.android.com/studio/command-line/adb)
 
 ![App Screenshot](/docs/img/screenshot_01.png?v=3)
@@ -151,3 +153,6 @@ Please keep your `rootCert.pfx` file, or you will have to re-install the certifi
 
 ## Common Issues / FAQ
 Check https://github.com/HughJeffner/FFRK-LabMem/wiki/Common-Issues-FAQ
+
+## Special Thanks
+Many, many thanks to HughJeffner for creating this amazing tool. Also, special thanks to mendicant for his modifications to the original project which served as the basis for this version of the bot.
