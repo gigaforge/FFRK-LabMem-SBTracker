@@ -80,6 +80,7 @@ namespace FFRK_LabMem.Machines
                 List<Adb.ImageDef> items = new List<Adb.ImageDef>();
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_inventory, Simalarity = 0.90f });
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_blue_ok, Simalarity = 0.95f });
+                items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_brown_ok, Simalarity = 0.95f });
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_skip, Simalarity = 0.90f });
                 items.Add(new Adb.ImageDef() { Image = Properties.Resources.lab_segment, Simalarity = 0.85f });
                 if (Data == null) items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_blue_enter, Simalarity = 0.95f });
@@ -883,18 +884,18 @@ namespace FFRK_LabMem.Machines
             // Mission Complete
             Watchdog.Kick(true);
             ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for mission complete dialog");
-            await DelayedTapButton("Inter-RestartLab", BUTTON_BROWN, 2000, 39, 61, 82, 5);
+            await DelayedTapButton("Inter-RestartLab", BUTTON_BROWN, 2000, 39, 51, 86, 30);
             
             // Enter button 1
             Watchdog.Kick(true);
             ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for enter button 1");
-            if (await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 44.1, 80, 94, 20))
+            if (await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 39, 80, 94, 20))
             {
 
                 // Enter button 2
                 Watchdog.Kick(true);
                 ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Checking for enter button 2");
-                if (await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 44.1, 80, 90, 20, -1, 1))
+                if (await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 43, 80, 90, 20, -1, 1))
                 {
 
                     // Stamina dialog
@@ -903,7 +904,7 @@ namespace FFRK_LabMem.Machines
                     if (staminaResult.PotionUsed)
                     {
                         // Enter button 2 again
-                        await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 50, 80, 90, 20); 
+                        await DelayedTapButton("Inter-RestartLab", BUTTON_BLUE, 2000, 43, 80, 90, 20); 
                     }
                     else if (staminaResult.NeedsWait)
                     {

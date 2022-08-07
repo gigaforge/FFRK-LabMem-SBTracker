@@ -22,6 +22,7 @@ namespace FFRK_LabMem
 
             // Enable visual styles in forms
             System.Windows.Forms.Application.EnableVisualStyles();
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             // Get Configuration
             var configFile = (args.Length > 0) ? args[0] : null;
@@ -55,6 +56,10 @@ namespace FFRK_LabMem
             {
                 // Controller
                 controller = LabController.CreateAndStart(config).Result;
+
+                // Instructions for Japanese output
+                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Japanese output: click treasure chest in top left then Properties and change Font to MS Mincho");
+                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "See Readme.md on GitHub for more information");
 
                 // Ad-hoc command loop
                 Console.WriteLine("Press 'D' to Disable, 'E' to Enable, 'C' for Config, 'S' for Stats, 'Ctrl+X' to Exit");
