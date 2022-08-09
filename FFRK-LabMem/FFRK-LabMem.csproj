@@ -170,9 +170,9 @@
     <Content Include="blocklist.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\button_brown_ok.bmp" />
     <None Include="Resources\lab_segment.bmp" />
     <None Include="Resources\button_blue_play.bmp" />
-    <None Include="Resources\button_brown_ok.bmp" />
     <None Include="Resources\button_inventory.bmp" />
     <None Include="Resources\button_skip.bmp" />
     <None Include="Resources\battle_commands.bmp" />
@@ -181,6 +181,7 @@
     <None Include="Resources\button_s_off.bmp" />
     <None Include="Resources\button_blue_enter.bmp" />
     <None Include="Resources\button_blue_ok.bmp" />
+    <None Include="Resources\button_brown_back.bmp" />
     <Content Include="Resources\drop.ico" />
     <None Include="Resources\folder.png" />
     <None Include="Resources\error.png" />

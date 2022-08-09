@@ -58,7 +58,7 @@ namespace FFRK_LabMem
                 controller = LabController.CreateAndStart(config).Result;
 
                 // Instructions for Japanese output
-                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Japanese output: click treasure chest in top left then Properties and change Font to MS Mincho");
+                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Japanese output: click treasure chest in top left then Properties and change Font to MS Gothic");
                 ColorConsole.WriteLine(ConsoleColor.DarkYellow, "See Readme.md on GitHub for more information");
 
                 // Ad-hoc command loop
