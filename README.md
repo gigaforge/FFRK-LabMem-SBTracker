@@ -88,13 +88,13 @@ If the proxy root CA certificate isn't installed the bot will copy it to the dev
 This certificate is only used to decrypt traffic to URLs used by FFRK to run, all other traffic is tunneled through the proxy with no inspection.
 
 ### <a name="japanesetext"></a>Japanese text
-*(**Note**: This section is optional.)*
+*(**Note**: This section is optional. Any font that supports Japanese output, such as MS Mincho which was previously recommended, will work, but I now recommend MS Gothic because it's easier to set up and frankly looks better.)*
 
-The bot now supports Japanese text; however, the default font will not display it correctly. If you want to see Japanese characters, you will need to use a font called MS Mincho. You can do this by clicking the treasure chest icon in the top-left corner of the window (next to the bot's name), clicking `Properties`, and going to the `Font` tab. Once there, select MS Mincho from the list and click `OK`. (If you get an error saying the shortcut cannot be modified, close LabMem, then right-click the shortcut and select `Run as Administrator`, then change the font and it will remember it for future launches.)
+The bot now supports Japanese text; however, the default font will not display it correctly. If you want to see Japanese characters, you will need to use a font that supports Japanese characters; my recommendation is MS Gothic. You can do this by clicking the treasure chest icon in the top-left corner of the window (next to the bot's name), clicking `Properties`, and going to the `Font` tab. Once there, select MS Mincho from the list and click `OK`. (If you get an error saying the shortcut cannot be modified, close LabMem, then right-click the shortcut and select `Run as Administrator`, then change the font and it will remember it for future launches.)
 
 ![Menu Screenshot](/docs/img/properties_01.png?v=3)
 
-If MS Mincho does not appear, you'll need to install it. On Windows 10/11, click `Start`, then `Settings`, then `Personalization`, then `Fonts`. Here, on the right side of the screen, click `Download Fonts for All Languages` and it will be installed. Once installed (this may take a minute or two), MS Mincho will show up in the font list.
+If MS Gothic does not appear, you'll need to install it. On Windows 10/11, click `Start`, then `Settings`, then `Personalization`, then `Fonts`. Here, on the right side of the screen, click `Download Fonts for All Languages` and it will be installed. Once installed (this may take a minute or two), MS Gothic will show up in the font list.
 
 ### Screen offsets
 From version 0.9.10 and higher, screen offsets can be automatically detected using `Alt+O` when on FFRK title screen.
