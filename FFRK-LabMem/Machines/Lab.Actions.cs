@@ -991,6 +991,16 @@ namespace FFRK_LabMem.Machines
                         // Use potion
                         ret.PotionUsed = await UseStaminaPotion();
                     }
+                    else
+                    {
+                        ColorConsole.WriteLine(ConsoleColor.Yellow, "No potions or button not found!");
+                        await Notify(Notifications.EventType.LAB_FAULT, "Out of stamina");
+
+                        // Back out to main screen
+                        await Adb.NavigateBack(this.CancellationToken);
+                        await Task.Delay(500, this.CancellationToken);
+                        await Adb.NavigateBack(this.CancellationToken);
+                    }
                 }
                 else if (Config.WaitForStamina)
                 {
