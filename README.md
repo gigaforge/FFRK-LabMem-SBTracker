@@ -1,5 +1,5 @@
 # FFRK-LabMem
-This is a slightly modifed version of HughJeffner's original LabMem bot for FFRK. It is built to run with FFRK JP, with various changes made by mendicant and further modified by bover87. **This version may contain bugs. I will try my best to fix any issues, but my knowledge of coding is extremely limited. If you find bugs and know how to fix them, please feel free to create a fork.**
+This is a slightly modifed version of HughJeffner's [original LabMem bot](https://github.com/HughJeffner/FFRK-LabMem) for FFRK. It is built to run with FFRK JP, with various changes made by mendicant and further modified by bover87. **This version may contain bugs. I will try my best to fix any issues, but my knowledge of coding is extremely limited. If you find bugs and know how to fix them, please feel free to create a fork.**
 
 Full automation for labyrinth dungeons on Android FFRK and Windows using a proxy server and [adb](https://developer.android.com/studio/command-line/adb)
 
@@ -90,7 +90,7 @@ This certificate is only used to decrypt traffic to URLs used by FFRK to run, al
 ### <a name="japanesetext"></a>Japanese text
 *(**Note**: This section is optional. Any font that supports Japanese output, such as MS Mincho which was previously recommended, will work, but I now recommend MS Gothic because it's easier to set up and frankly looks better.)*
 
-The bot now supports Japanese text; however, the default font will not display it correctly. If you want to see Japanese characters, you will need to use a font that supports Japanese characters; my recommendation is MS Gothic. You can do this by clicking the treasure chest icon in the top-left corner of the window (next to the bot's name), clicking `Properties`, and going to the `Font` tab. Once there, select MS Mincho from the list and click `OK`. (If you get an error saying the shortcut cannot be modified, close LabMem, then right-click the shortcut and select `Run as Administrator`, then change the font and it will remember it for future launches.)
+The bot now supports Japanese text; however, the default font will not display it correctly. If you want to see Japanese characters, you will need to use a font that supports Japanese characters; my recommendation is MS Gothic. You can do this by clicking the treasure chest icon in the top-left corner of the window (next to the bot's name), clicking `Properties`, and going to the `Font` tab. Once there, select MS Mincho from the list and click `OK`. (If you get an error saying the shortcut cannot be modified, close LabMem, then right-click the shortcut and select `Run as Administrator`, then change the font and it will remember it for future launches.) Alternatively, you can simply change the default font (`Defaults` on the same menu where you select `Fonts`), although this will change every other console-based application to that font.
 
 ![Menu Screenshot](/docs/img/properties_01.png?v=3)
 
