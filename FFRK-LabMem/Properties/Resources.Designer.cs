@@ -143,6 +143,16 @@ namespace FFRK_LabMem.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap button_brown_potion {
+            get {
+                object obj = ResourceManager.GetObject("button_brown_potion", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap button_inventory {
             get {
                 object obj = ResourceManager.GetObject("button_inventory", resourceCulture);

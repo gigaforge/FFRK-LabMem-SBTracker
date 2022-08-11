@@ -182,6 +182,7 @@
     <None Include="Resources\button_blue_enter.bmp" />
     <None Include="Resources\button_blue_ok.bmp" />
     <None Include="Resources\button_brown_back.bmp" />
+    <None Include="Resources\button_brown_potion.bmp" />
     <Content Include="Resources\drop.ico" />
     <None Include="Resources\folder.png" />
     <None Include="Resources\error.png" />

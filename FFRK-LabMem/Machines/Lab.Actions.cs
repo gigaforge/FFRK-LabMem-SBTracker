@@ -970,20 +970,27 @@ namespace FFRK_LabMem.Machines
             var ret = new CheckRestoreStaminaResult();
 
             // Orange gems button present
-            if (await Adb.FindButton(BUTTON_ORANGE, 2000, 34.7, 62.5, 78.1, 5, this.CancellationToken) != null)
+            if (await Adb.FindButton(BUTTON_ORANGE, 2000, 34.7, 50.0, 78.1, 15, this.CancellationToken) != null)
             {
                 ret.StaminaDialogPresent = true;
 
-                // Brown use potion button
-                Adb.FindButtonResult staminaButton = null;
-                if (Config.UsePotions && (staminaButton = await Adb.FindButton(BUTTON_BROWN, 2000, 50, 36, 50, 0, this.CancellationToken, -1, 0)) != null)
+                // Checks settings to see if potion should be used
+                if (Config.UsePotions)
                 {
-                    // Select potions
-                    await Adb.TapPct(staminaButton.button.Item1, staminaButton.button.Item2, this.CancellationToken);
+                    // Finds potion button
+                    List<Adb.ImageDef> items = new List<Adb.ImageDef>();
+                    items.Add(new Adb.ImageDef() { Image = Properties.Resources.button_brown_potion, Simalarity = 0.90f });
+                    var staminaButton = await Adb.FindImages(items, 3, this.CancellationToken);
 
-                    // Use potion
-                    ret.PotionUsed = await UseStaminaPotion();
+                    if (staminaButton != null)
+                    {
+                        // Tap potion button
+                        ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Found area {0}", staminaButton);
+                        await Adb.TapPct(staminaButton.Location.Item1, staminaButton.Location.Item2, this.CancellationToken);
 
+                        // Use potion
+                        ret.PotionUsed = await UseStaminaPotion();
+                    }
                 }
                 else if (Config.WaitForStamina)
                 {
