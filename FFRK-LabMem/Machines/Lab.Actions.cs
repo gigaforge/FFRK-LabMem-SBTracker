@@ -970,7 +970,7 @@ namespace FFRK_LabMem.Machines
             var ret = new CheckRestoreStaminaResult();
 
             // Orange gems button present
-            if (await Adb.FindButton(BUTTON_ORANGE, 2000, 34.7, 50.0, 78.1, 15, this.CancellationToken) != null)
+            if (await Adb.FindButton(BUTTON_ORANGE, 2000, 34.7, 44.0, 78.1, 10, this.CancellationToken) != null)
             {
                 ret.StaminaDialogPresent = true;
 
