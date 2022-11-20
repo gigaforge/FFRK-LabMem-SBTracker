@@ -37,7 +37,7 @@ namespace FFRK_LabMem.Services
 
         }
 
-        public static String GetVersionCode(String preRelease = "jp")
+        public static String GetVersionCode(String preRelease = "")
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             var suffix = (String.IsNullOrEmpty(preRelease))?"":"-" + preRelease;
@@ -51,7 +51,6 @@ namespace FFRK_LabMem.Services
 
         public static async Task<bool> Check(bool includePreRelease)
         {
-            return false;
             ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Checking for newer releases...");
             var checker = new Updates(includePreRelease);
             try

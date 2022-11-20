@@ -52,7 +52,6 @@ namespace FFRK_LabMem.Services
         {
             if (APIKEY.Length > 1)
             {
-                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Sending Soulbreaks to http://ffrk.gigaforge.com/ tracker (may appear multiple times)...");
                 var checker = new SoulbreakSync();
                 var values = new Dictionary<string, string>
                 {
@@ -61,6 +60,9 @@ namespace FFRK_LabMem.Services
                 };
                 var content = new FormUrlEncodedContent(values);
                 var response = await checker.httpClient.PostAsync(WEB_URL, content);
+                var result = response.Content.ReadAsStringAsync().Result;
+                if (result != "")
+                    ColorConsole.WriteLine(ConsoleColor.DarkYellow, "{0}", response.Content.ReadAsStringAsync().Result);
             }
 
             return true;
