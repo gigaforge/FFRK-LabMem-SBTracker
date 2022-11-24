@@ -26,10 +26,10 @@ namespace FFRK_LabMem.Services
         public static string APIKEY = "";
         private const string GITHUB_USER = "gigaforge";
         private const string GITHUB_REPO = "FFRK-LabMem-SBTracker";
+        private static List<Int64> ownedSoulbreaks = new List<Int64>();
 
         public SoulbreakSync()
         {
-
             this.Endpoint = WEB_URL;
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
             httpClient = new HttpClient();
@@ -50,7 +50,24 @@ namespace FFRK_LabMem.Services
 
         public static async Task<bool> Sync(string soulbreaks)
         {
-            if (APIKEY.Length > 1)
+            string[] sbs = soulbreaks.Split(',');
+            string newSoulbreaks = "0";
+            Int64 sbCheck;
+            foreach (var sb in sbs)
+            {
+                sbCheck = Int64.Parse(sb);
+                if (ownedSoulbreaks.Contains(sbCheck))
+                {
+                    continue;
+                }
+                else
+                {
+                    newSoulbreaks += "," + sb;
+                    ownedSoulbreaks.Add(sbCheck);
+                }
+            }
+
+            if (APIKEY.Length > 1 && newSoulbreaks != "0")
             {
                 var checker = new SoulbreakSync();
                 var values = new Dictionary<string, string>
