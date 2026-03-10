@@ -172,7 +172,7 @@ Windows 11 users, however, will need to do some legwork to make the bot work. Yo
 - You can enable developer mode, but Mumu 3 does NOT support USB debugging. Mumu Pro may support it, but I don't have access to it to test.
 - In Windows 11, do NOT disable Hyper-V unless you also plan to disable all the other features that prevent older emus from running. If Hyper-V is not running the bot will not correctly configure its features for newer emulators. More concretely, the service `HV Host Service` must be in the `Running` state to be detected (other states, including `Stopped`, are treated as it being not present, and other Hyper-V services aren't checked).
 - **Installing the certificate**: After installing and running the bot, look in its folder for `rootCert.pfx`. Place this file in the `MuMuShared` folder in your Documents folder. Then open your `Files` app in Mumu and click on the certificate to install it.
-- After installing the certificate, press `Enter` to advance the bot. When running the bot the first time, it will almost certainly crash. **This is fine**, just restart it and it should activate itself then.
+- After installing the certificate, press `Enter` to advance the bot. When running the bot the first time, it will almost certainly crash. **This is fine**, just restart it and it should activate itself then (press `Enter` again when prompted).
 
 ## Common Issues / FAQ
 Mumu 3 (Windows 11) users should click [here](#Mumu-3-Users) for information specific to you.
@@ -181,4 +181,5 @@ For other issues check https://github.com/HughJeffner/FFRK-LabMem/wiki/Common-Is
 
 ## Special Thanks
 Many, many thanks to HughJeffner for creating this amazing tool. Also, special thanks to mendicant for his modifications to the original project which served as the basis for this version of the bot.
+
 
