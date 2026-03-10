@@ -18,7 +18,7 @@ Built using Visual Studio 2022 Community, Installer using Inno Setup 6, pre-comp
 | Android 7 (Nougat)              | 7.0.0+          | Yes (root) |
 | Android 8 (Oreo)                | 7.0.0+          | Yes (root) |
 | Android 9 (Nougat)              | 7.0.0+          | Yes (root) |
-| Android 10 +                    | 7.0.0+          | No ([maybe?](https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/#instructions-for-api-level--28))|        |
+| Android 10 +                    | 7.0.0+          | Yes (root) |
 
 _All compatible versions using FFRK 7.0.0+ must install a certificate_
 
@@ -181,5 +181,6 @@ For other issues check https://github.com/HughJeffner/FFRK-LabMem/wiki/Common-Is
 
 ## Special Thanks
 Many, many thanks to HughJeffner for creating this amazing tool. Also, special thanks to mendicant for his modifications to the original project which served as the basis for this version of the bot.
+
 
 
