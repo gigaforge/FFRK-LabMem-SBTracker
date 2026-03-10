@@ -20,7 +20,7 @@ namespace FFRK_LabMem.Machines
 
         private const string BUTTON_BLUE = "#2060ce";
         private const string BUTTON_BROWN = "#6c3518";
-        private const string BUTTON_ORANGE = "#c85f07";
+        private const string BUTTON_ORANGE = "#c54c06";
         private const string BUTTON_GREY = "#282727";
         private const string BUTTON_SKIP = "#d4d8f6";
 
@@ -390,7 +390,7 @@ namespace FFRK_LabMem.Machines
             if (Config.PartyIndex == LabConfiguration.PartyIndexOption.InstaBattle && partyResult.CanInstaBattle)
             {
                 // Insta-battle
-                button = await DelayedTapButton("Pre-BattleInfo", BUTTON_ORANGE, 1250, 13.8, 77, 93, 25, -1, 1);
+                button = await DelayedTapButton("Pre-BattleInfo", BUTTON_ORANGE, 1250, 13.3, 77, 79, 25, -1, 1);
 
                 // Confirmation
                 await Adb.FindButtonAndTap(BUTTON_BLUE, 2050, 58.3, 57, 71.8, 5, this.CancellationToken, -1, 1);
