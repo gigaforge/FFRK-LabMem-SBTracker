@@ -5,8 +5,13 @@ using FFRK_LabMem.Data.UI;
 using FFRK_LabMem.Machines;
 using FFRK_LabMem.Services;
 using FFRK_Machines;
+using FFRK_Machines.Services;
 using System.Linq;
 using FFRK_Machines.Services.Adb;
+using System.Security.Cryptography.X509Certificates;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Runtime.ConstrainedExecution;
 
 namespace FFRK_LabMem
 {
@@ -51,15 +56,21 @@ namespace FFRK_LabMem
             if (config.GetBool("updates.checkForUpdates", false))
                 _ = Updates.Check(config.GetBool("updates.includePrerelease", false));
 
+            // Hyper-V check
+            ColorConsole.Debug(ColorConsole.DebugCategory.Notifcation, "Hyper-V is " + HyperV.GetHVStatus());
+
             LabController controller = null;
             try
             {
                 // Controller
                 controller = LabController.CreateAndStart(config).Result;
 
-                // Instructions for Japanese output
-                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Japanese output: click treasure chest in top left then Properties and change Font to MS Gothic");
-                ColorConsole.WriteLine(ConsoleColor.DarkYellow, "See Readme.md on GitHub for more information");
+                // Instructions for Japanese output (Windows 10 and earlier)
+                if (HyperV.GetHVStatus() != "Running")
+                {
+                    ColorConsole.WriteLine(ConsoleColor.DarkYellow, "Japanese output: click treasure chest in top left then Properties and change Font to MS Gothic");
+                    ColorConsole.WriteLine(ConsoleColor.DarkYellow, "See Readme.md on GitHub for more information");
+                }
 
                 // Ad-hoc command loop
                 Console.WriteLine("Press 'D' to Disable, 'E' to Enable, 'C' for Config, 'S' for Stats, 'Ctrl+X' to Exit");
@@ -85,6 +96,17 @@ namespace FFRK_LabMem
                     if (key.Key == ConsoleKey.OemMinus) controller.SetRestartCount(-1);
                     if (key.KeyChar == '?') Console.WriteLine(Properties.Resources.HelpString);
                     if (key.Key == ConsoleKey.B) Benchmark.FrameCapture(controller);
+                    
+                    // This was intended to allow Win11 users to manually run cert install script with Hyper-V ignored, to force-install the cert
+                    // It would have skipped the "Press ENTER" prompt and immediately proceeded to activate the bot's functions
+                    // This does not work however, so this code is commented out
+                    // if (key.Key == ConsoleKey.I)
+                    //{
+                    //    controller.Disable();
+                    //    HyperV.ResetHVStatus();
+                    //    controller = LabController.CreateAndStart(config).Result;
+                    //    ColorConsole.WriteLine(ConsoleColor.Red, "**PLEASE RESTART LABMEM AFTER CERTIFICATE INSTALL**");
+                    //}
                     Tyro.ReadConsole(key);
                 }
             }

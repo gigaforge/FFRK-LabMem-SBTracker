@@ -80,7 +80,14 @@ namespace FFRK_Machines.Services.Adb
                 }
                 finally
                 {
-                    ColorConsole.WriteLine(ConsoleColor.Red, "Minicap service has shut down, please restart the bot to recover.");
+                    if (HyperV.GetHVStatus() == "Running")
+                    {
+                        ColorConsole.Debug(ColorConsole.DebugCategory.Adb, "Hyper-V preventing Minicap detection, state unknown");
+                    }
+                    else
+                    {
+                        ColorConsole.WriteLine(ConsoleColor.Red, "Minicap service has shut down, please restart the bot to recover.");
+                    }
                     adb.Capture = CaptureType.ADB;
                 }
             });
@@ -92,7 +99,10 @@ namespace FFRK_Machines.Services.Adb
             // Verify install
             if (!await MinicapVerify(cancellationToken))
             {
-                ColorConsole.WriteLine(ConsoleColor.Yellow, "Could not verify minicap install, switching to ADB frame capture");
+                if (HyperV.GetHVStatus() != "Running")
+                {
+                    ColorConsole.WriteLine(ConsoleColor.Yellow, "Could not verify minicap install, switching to ADB frame capture");
+                }
                 adb.Capture = CaptureType.ADB;
                 return;
             }

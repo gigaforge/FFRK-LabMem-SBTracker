@@ -1,9 +1,12 @@
 ﻿using SharpAdbClient;
 using System;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using static FFRK_Machines.Services.HyperV;
 
 namespace FFRK_Machines.Services.Adb
 {
@@ -33,6 +36,7 @@ namespace FFRK_Machines.Services.Adb
 
             // Get API level
             int apiLevel = await adb.GetAPILevel(cancellationToken);
+            //if (GetHVStatus() == "Running") return;
 
             // Lollipop or higher
             if (apiLevel >= 21)
@@ -50,10 +54,10 @@ namespace FFRK_Machines.Services.Adb
 
                     // If needs install
                     var installStatus = await CheckIfRootCertInstalled(apiLevel);
-                    if (!installStatus.Installed)
+                    if (!installStatus.Installed)                        
                     {
                         // Prompt to install
-                        await PromptToInstallRootCert(CERTIFICATE_CRT_PATH, rootCert, apiLevel, cancellationToken);
+                        await PromptToInstallRootCert(CERTIFICATE_CRT_PATH, rootCert, apiLevel, cancellationToken);                        
 
                     }
                     else
@@ -167,8 +171,14 @@ namespace FFRK_Machines.Services.Adb
                 ColorConsole.WriteLine(ConsoleColor.Yellow, "Choose VPN and Apps for credential use");
                 ColorConsole.WriteLine(ConsoleColor.Yellow, "(You may need to set a device lockscreen)");
 
-                // Need root
-                if (apiLevel >= 24)
+                if (GetHVStatus() == "Running")
+                {
+                    ColorConsole.WriteLine(ConsoleColor.Blue, "*****Hyper-V detected, certificate and root detection unreliable*****");
+                    ColorConsole.WriteLine(ConsoleColor.Blue, "*****LabMem will still work on supported emulators (e.g. Mumu)*****");
+                    // ColorConsole.WriteLine(ConsoleColor.Blue, "*****See Readme.md on GitHub for more information*****");
+                }
+                    // Need root
+                    if (apiLevel >= 24)
                 {
                     ColorConsole.WriteLine(ConsoleColor.Yellow, "*******************ROOT REQUIRED***********************");
                     ColorConsole.WriteLine(ConsoleColor.Yellow, "Please press <Enter> once certificate installed to copy");
@@ -179,6 +189,11 @@ namespace FFRK_Machines.Services.Adb
                         if ((await CheckIfRootCertInstalled(apiLevel)).Installed)
                         {
                             ColorConsole.WriteLine(ConsoleColor.Yellow, "Copy complete.  You may now delete the user certificate");
+                        }
+                        else if (GetHVStatus() == "Running")
+                        {
+                            ColorConsole.WriteLine(ConsoleColor.Blue, "Hyper-V running, cannot detect installation state");
+                            ColorConsole.WriteLine(ConsoleColor.Blue, "If you followed the readme the bot will still run");
                         }
                         else
                         {
