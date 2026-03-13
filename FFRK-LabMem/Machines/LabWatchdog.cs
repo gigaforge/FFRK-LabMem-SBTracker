@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using FFRK_Machines.Services.Adb;
+using static FFRK_Machines.Services.HyperV;
+using FFRK_LabMem.Services;
 
 namespace FFRK_LabMem.Machines
 {
@@ -186,7 +188,18 @@ namespace FFRK_LabMem.Machines
         {
             var state = await Lab.Adb.IsPackageRunning(Adb.FFRK_PACKAGE_NAME, System.Threading.CancellationToken.None);
             ColorConsole.Debug(ColorConsole.DebugCategory.Watchdog, "FFRK state: {0}", state ? "Running" : "Not Running");
-            if (!state)
+            if (Lab.StateMachine.State == Lab.State.Battle || Lab.StateMachine.State == Lab.State.EquipParty)
+            {
+                if (GetHVStatus() == "Running")
+                {
+                    return;
+                }
+                else
+                {
+                    InvokeTimeout(sender, WatchdogEventArgs.TYPE.Crash, e);
+                }
+            }
+            else if (!state)
             {
                 InvokeTimeout(sender, WatchdogEventArgs.TYPE.Crash, e);
             }

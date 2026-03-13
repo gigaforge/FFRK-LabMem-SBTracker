@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FFRK_Machines.Services.Adb;
+using System.Data.Common;
 
 namespace FFRK_LabMem.Machines
 {
@@ -19,7 +20,7 @@ namespace FFRK_LabMem.Machines
 
         private const string BUTTON_BLUE = "#2060ce";
         private const string BUTTON_BROWN = "#6c3518";
-        private const string BUTTON_ORANGE = "#c85f07";
+        private const string BUTTON_ORANGE = "#c54c06";
         private const string BUTTON_GREY = "#282727";
         private const string BUTTON_SKIP = "#d4d8f6";
 
@@ -389,7 +390,7 @@ namespace FFRK_LabMem.Machines
             if (Config.PartyIndex == LabConfiguration.PartyIndexOption.InstaBattle && partyResult.CanInstaBattle)
             {
                 // Insta-battle
-                button = await DelayedTapButton("Pre-BattleInfo", BUTTON_ORANGE, 1250, 13.8, 77, 93, 25, -1, 1);
+                button = await DelayedTapButton("Pre-BattleInfo", BUTTON_ORANGE, 1250, 13.3, 77, 93, 25, -1, 1);
 
                 // Confirmation
                 await Adb.FindButtonAndTap(BUTTON_BLUE, 2050, 58.3, 57, 71.8, 5, this.CancellationToken, -1, 1);
@@ -1134,8 +1135,8 @@ namespace FFRK_LabMem.Machines
                 var ret = await Adb.FindImages(items, 3, this.CancellationToken);
                 if (ret != null)
                 {
-                    // Tap it
-                    await Adb.TapPct(ret.Location.Item1, ret.Location.Item2, this.CancellationToken);
+                    // Tap it (Y axis is incremented by 4.5 to account for lack of gray bar in Android 12)
+                    await Adb.TapPct(ret.Location.Item1, ret.Location.Item2 + 4.5, this.CancellationToken);
                 }
                 // Delay between finds
                 await Task.Delay(Adb.CaptureRate, this.CancellationToken);

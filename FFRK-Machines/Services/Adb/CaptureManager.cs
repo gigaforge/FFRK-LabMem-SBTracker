@@ -18,6 +18,7 @@ namespace FFRK_Machines.Services.Adb
         private SemaphoreSlim minicapStarted = new SemaphoreSlim(0);
         private const String MINICAP_PATH = "/data/local/tmp/";
         private int minicapTimeouts = 0;
+        private static bool hasRun = false;
 
 
         public CaptureManager(Adb adb)
@@ -80,8 +81,16 @@ namespace FFRK_Machines.Services.Adb
                 }
                 finally
                 {
-                    ColorConsole.WriteLine(ConsoleColor.Red, "Minicap service has shut down, please restart the bot to recover.");
-                    adb.Capture = CaptureType.ADB;
+                    if (HyperV.GetHVStatus() == "Running" && hasRun == false)
+                    {
+                        hasRun = true;
+                        ColorConsole.Debug(ColorConsole.DebugCategory.Adb, "Hyper-V preventing Minicap detection, bot will continue with Minicap");
+                    }
+                    else
+                    {
+                        ColorConsole.WriteLine(ConsoleColor.Red, "Minicap service has shut down, please restart the bot to recover.");
+                        adb.Capture = CaptureType.ADB;
+                    }
                 }
             });
 
@@ -92,7 +101,10 @@ namespace FFRK_Machines.Services.Adb
             // Verify install
             if (!await MinicapVerify(cancellationToken))
             {
-                ColorConsole.WriteLine(ConsoleColor.Yellow, "Could not verify minicap install, switching to ADB frame capture");
+                if (HyperV.GetHVStatus() != "Running")
+                {
+                    ColorConsole.WriteLine(ConsoleColor.Yellow, "Could not verify minicap install, switching to ADB frame capture");
+                }
                 adb.Capture = CaptureType.ADB;
                 return;
             }

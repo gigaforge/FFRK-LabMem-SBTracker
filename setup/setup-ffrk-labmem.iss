@@ -1,9 +1,9 @@
 #define MyAppName "FFRK-LabMem"
 #ifndef MyAppVersion
-#define MyAppVersion GetFileVersion('..\FFRK-LabMem\bin\Release\FFRK-LabMem.exe') + '-Beta'
+#define MyAppVersion GetFileVersion('..\FFRK-LabMem\bin\Release\FFRK-LabMem.exe') + '-JP'
 #endif
-#define MyAppPublisher "HughJeffner"
-#define MyAppURL "https://github.com/HughJeffner/FFRK-LabMem"
+#define MyAppPublisher "bover87"
+#define MyAppURL "https://github.com/bover87/HMB-FFRK-JP-LabMem"
 #define MyAppExeName "FFRK-LabMem.exe"
 #define AppId "{142A5A54-2A68-4F73-81AE-7DBF5EC860FC}"
 #define SetupReg "Software\Microsoft\Windows\CurrentVersion\Uninstall\" + AppId + "_is1"

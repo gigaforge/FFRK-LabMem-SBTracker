@@ -22,28 +22,31 @@ Built using Visual Studio 2022 Community, Installer using Inno Setup 6, pre-comp
 | Android 7 (Nougat)              | 7.0.0+          | Yes (root) |
 | Android 8 (Oreo)                | 7.0.0+          | Yes (root) |
 | Android 9 (Nougat)              | 7.0.0+          | Yes (root) |
-| Android 10 +                    | 7.0.0+          | No ([maybe?](https://docs.mitmproxy.org/stable/howto-install-system-trusted-ca-android/#instructions-for-api-level--28))|        |
+| Android 10 +                    | 7.0.0+          | Yes (root) |
 
 _All compatible versions using FFRK 7.0.0+ must install a certificate_
 
 ## (Somewhat) Quick Start
+*(**Note**: Mumu 3/Windows 11 users, please click [here](#mumu-3-users) for instructions specific to you.)*
 1. Go to the [releases page](https://github.com/bover87/HMB-FFRK-JP-LabMem/releases) and find the lastest release
 2. Under 'Assets' dropdown download `FFRK-LabMem-x.x.x-Beta-Installer.exe` file and download, run, and follow the steps. (Or you can manually install by downloading and extracting the .zip file instead)
 3. Start Emulator / Connect device to USB
-4. Turn on 'Developer Mode' in android settings [see here](https://developer.android.com/studio/debug/dev-options)
-5. Activate USB debugging in developer settings
-6. Start application FFRK-LabMem.exe (it has a treasure-chest icon)
-7. Press `C` to open the configuration
-8. [Update ADB host](#adbconnection) if using emulator
-9. Restart the bot when prompted
-10. Go back into the configuration, Under proxy settings, enable Auto-configure
+4. Set emulator resolution to 720 (width) × 1280 (height).
+5. (Optional) If playing using an emulator, lower the frame rate to 30 unless you use it to play other games or stream/record, to improve performance.
+6. Turn on 'Developer Mode' in android settings [see here](https://developer.android.com/studio/debug/dev-options)
+7. Activate USB debugging in developer settings
+8. Start application FFRK-LabMem.exe (it has a treasure-chest icon)
+9. Press `C` to open the configuration
+10. [Update ADB host](#adbconnection) if using emulator
 11. Restart the bot when prompted
-12. Restart your device/emulator when prompted
-13. Follow any on-screen instructions to install the certificate
-14. (Optional) If you want to see Japanese characters, change the font to MS Mincho. More information about displaying Japanese characters is give [here](#japanesetext)
-15. Launch FFRK
-16. On the home screen (not title screen) auto-detect screen offsets `Alt+O` ('o' for offsets)
-17. Start a lab or enter one in-progress
+12. Go back into the configuration, Under proxy settings, enable Auto-configure
+13. Restart the bot when prompted
+14. Restart your device/emulator when prompted
+15. Follow any on-screen instructions to install the certificate
+16. (Optional, Windows 10 and earlier) If you want to see Japanese characters, change the font to MS Gothic. More information about displaying Japanese characters is give [here](#japanesetext)
+17. Launch FFRK
+18. On the title screen (with the blue `START` button) auto-detect screen offsets `Alt+O` ('o' for offsets)
+19. Start a lab or enter one in-progress
 
 ## Basic Usage
 Use the installer or extract all files from the .zip file to a folder
@@ -92,7 +95,7 @@ If the proxy root CA certificate isn't installed the bot will copy it to the dev
 This certificate is only used to decrypt traffic to URLs used by FFRK to run, all other traffic is tunneled through the proxy with no inspection.
 
 ### <a name="japanesetext"></a>Japanese text
-*(**Note**: This section is optional. Any font that supports Japanese output, such as MS Mincho which was previously recommended, will work, but I now recommend MS Gothic because it's easier to set up and frankly looks better.)*
+*(**Note**: This section is optional. Any font that supports Japanese output, such as MS Mincho which was previously recommended, will work, but I now recommend MS Gothic because it's easier to set up and frankly looks better. This is unnecessary for Windows 11 users as it displays Japanese characters out-of-the-box.)*
 
 The bot now supports Japanese text; however, the default font will not display it correctly. If you want to see Japanese characters, you will need to use a font that supports Japanese characters; my recommendation is MS Gothic. You can do this by clicking the treasure chest icon in the top-left corner of the window (next to the bot's name), clicking `Properties`, and going to the `Font` tab. Once there, select MS Mincho from the list and click `OK`. (If you get an error saying the shortcut cannot be modified, close LabMem, then right-click the shortcut and select `Run as Administrator`, then change the font and it will remember it for future launches.) Alternatively, you can simply change the default font (`Defaults` on the same menu where you select `Fonts`), although this will change every other console-based application to that font.
 
@@ -164,9 +167,24 @@ For a major release copy all files.  You can optionally keep your configuration 
 
 Please keep your `rootCert.pfx` file, or you will have to re-install the certificate on the android device
 
+## Mumu 3 Users
+If you're using Windows 10 or earlier, it's easiest to simply downgrade Mumu to [1.4.2](https://windows.apkpure.com/mumu-player/download/18615) and turn off Windows Hypervisor (Hyper-V) if it's running. Starting with version 8.4.0+ of LabMem, the bot will automatically detect whether Hyper-V is running (off by default in Windows 10, on by default in Windows 11) and adjust its crash detection and other features accordingly, so **all users can use the same bot version.**
+
+Windows 11 users, however, will need to do some legwork to make the bot work. You'll have to use Mumu 3; older Mumu versions and most other Android emulators don't work in Windows 11 without disabling a host of security settings, and Android Studio, Mumu Nebula, and Bluestacks aren't compatible with the bot. You should follow the instructions [above](#Somewhat-Quick-Start) with the following exceptions:
+
+- You MUST use 8.3.2 or later. Otherwise, the bot will often detect false "crashes" mid-battle and restart.
+- You can enable developer mode, but Mumu 3 does NOT support USB debugging. Mumu Pro may support it, but I don't have access to it to test.
+- In Windows 11, do NOT disable Hyper-V unless you also plan to disable all the other features that prevent older emus from running. If Hyper-V is not running the bot will not correctly configure its features for newer emulators. More concretely, the service `HV Host Service` must be in the `Running` state to be detected (other states, including `Stopped`, are treated as it being not present, and other Hyper-V services aren't checked).
+- **Installing the certificate**: After installing and running the bot, look in its folder for `rootCert.pfx`. Place this file in the `MuMuShared` folder in your Documents folder. Then open your `Files` app in Mumu and click on the certificate to install it.
+- After installing the certificate, press `Enter` to advance the bot. When running the bot the first time, it will almost certainly crash. **This is fine**, just restart it and it should activate itself then (press `Enter` again when prompted).
 
 ## Common Issues / FAQ
-Check https://github.com/HughJeffner/FFRK-LabMem/wiki/Common-Issues-FAQ
+Mumu 3 (Windows 11) users should click [here](#Mumu-3-Users) for information specific to you.
+
+For other issues check https://github.com/HughJeffner/FFRK-LabMem/wiki/Common-Issues-FAQ
 
 ## Special Thanks
 Many, many thanks to HughJeffner for creating this amazing tool. Also, special thanks to mendicant for his modifications to the original project which served as the basis for this version of the bot.
+
+
+
