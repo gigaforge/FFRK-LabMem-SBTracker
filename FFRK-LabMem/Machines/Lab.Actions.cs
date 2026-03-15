@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FFRK_Machines.Services.Adb;
 using System.Data.Common;
+using System.Drawing;
 
 namespace FFRK_LabMem.Machines
 {
@@ -1126,6 +1127,12 @@ namespace FFRK_LabMem.Machines
             // Stopwatch to limit how long we try to find buttons
             recoverStopwatch.Restart();
 
+            // Calculate correct offset for Start button
+            Adb.Size ScreenSize = await this.Adb.GetScreenSize();
+            int Height = ScreenSize.Height;
+            double OffsetPct = (this.Adb.BottomOffset / Height) * 100;
+            ColorConsole.Debug(ColorConsole.DebugCategory.Adb, "Offset Percentage: " + (OffsetPct.ToString()) + "%");
+
             // Button Finding Loop with timeout and break if stopwatch stopped
             TimeSpan loopTimeout = await LabTimings.GetTimeSpan("Inter-RestartFFRK-Timeout");
             ColorConsole.Debug(ColorConsole.DebugCategory.Lab, "Button finding loop for {0}s", loopTimeout.TotalSeconds);
@@ -1135,8 +1142,8 @@ namespace FFRK_LabMem.Machines
                 var ret = await Adb.FindImages(items, 3, this.CancellationToken);
                 if (ret != null)
                 {
-                    // Tap it (Y axis is incremented by 4.5 to account for lack of gray bar in Android 12)
-                    await Adb.TapPct(ret.Location.Item1, ret.Location.Item2 + 4.5, this.CancellationToken);
+                    // Tap it (Y axis is incremented using the bottom offset)
+                    await Adb.TapPct(ret.Location.Item1, ret.Location.Item2 + OffsetPct, this.CancellationToken);
                 }
                 // Delay between finds
                 await Task.Delay(Adb.CaptureRate, this.CancellationToken);
